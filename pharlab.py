@@ -1,16 +1,35 @@
-import os
+from pathlib import Path
+import shutil
 
-diretorio = os.listdir()
+
+raiz = Path('.')
+arquivos_raiz = raiz.iterdir()
+arquivos_raiz_pedidos = list()
+pastas = 'Pedidos'
 pedidos = list()
+diretorio = Path('pedidos')
+arquivos = diretorio.iterdir()
 
-for arquivo in diretorio:
-    if arquivo.startswith('PHL'):
-        pedidos.append(arquivo)
-    else:
-        None
+if diretorio.exists():
+    pass
+else:
+    Path('pedidos').mkdir()
+
+
+for x in arquivos:
+    pedidos.append(x)
+
+for x in arquivos_raiz:
+    if x.is_file():
+        nome_arquivo = x.name
+        if nome_arquivo.startswith('PHL'):
+            shutil.move(nome_arquivo, diretorio)
+
 
 def pharlab_pedido(file: str) -> str:
-    with open(file, mode='r', encoding='utf8', errors='ignore') as arquivo:
+    produtos = list()
+    qtde_produtos = list()
+    with open(file=file, mode='r', encoding='utf8', errors='ignore') as arquivo:
         linha = arquivo.readline()
 
         while linha:
@@ -24,25 +43,32 @@ def pharlab_pedido(file: str) -> str:
 
             if linha.startswith('03'):
                 tipoPagamento = linha[2:4]
-                if tipoPagamento == '03':
-                    condicao = ' - Prazo Especial.'
-                elif tipoPagamento == '02':
-                    condicao = ' - A prazo.'
-                elif tipoPagamento == '01':
-                    condicao = ' - A vista'
-                else:
-                    None
+            
+            if linha.startswith('04'):
+                pass
+
+            if linha.startswith('05'):
+                ean = linha[2:15]
+                qtde = int(linha[42:53])
+                produtos.append(ean)
+                qtde_produtos.append(qtde)
+
+                   
+
             linha = arquivo.readline()
-        print('-' * 76)
-        if len(file) == 47:
-            print(f'Pedido: {pedido} Arquivo:  {file}|')
-        else:
-            print(f'Pedido: {pedido} Arquivo:  {file}    |')
-        print('-' * 76)
+        print('-' * 77)
+        print(f'Pedido: {pedido} Arquivo:  {file.name}|')
+        print('-' * 77)
         print(f'CNPJ: {cnpj}')
         print(f'Layout: {layout}')
-        print(f'TpPagamento {tipoPagamento} {condicao}')
+        print(f'Tipo Pagamento {tipoPagamento}')
+        for produto, qtde in zip(produtos, qtde_produtos):
+            print(f'EAN {produto} - Quantidade: {qtde}')
 
 
-for pedido in arquivos:
-    pharlab_pedido(pedido)
+if diretorio.iterdir():
+    #print(f'PEDIDO;CNPJ;ARQUIVO;EMAIL')
+    for arquivo in pedidos:
+        pharlab_pedido(arquivo)
+else:
+    None
